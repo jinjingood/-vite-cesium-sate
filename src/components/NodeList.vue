@@ -34,7 +34,6 @@ const deleteSate = (index) => {
   emit("deleteSate", index);
 };
 const editSate = (index) => {
-  console.log('点击edit',state.sateArr); 
   emit("edit", index);
 };
 

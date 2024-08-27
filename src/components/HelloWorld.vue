@@ -1,7 +1,7 @@
 <template>
   <div id="cesiumContainer"></div>
   <div class="container">
-    <NodeList @edit="openEdit" @deleteSate="deleteSate" @shotSate="shotSate"/>
+    <NodeList @edit="openEdit" @deleteSate="deleteSate" @shotSate="shotSate" />
     <CreatSate
       v-if="visible"
       @setSatePara="getSatePara"
@@ -49,114 +49,99 @@ onMounted(() => {
   }
 });
 
-let sate
 const createOrbit = (majorAxis, eccentricity, inclination) => {
-      const position = new Cesium.SampledPositionProperty();
-      const currentTime = Cesium.JulianDate.now();
-      const timeStepInSeconds = 600;
-      const totalSeconds = 86400;
-      for (let i = 0; i <= totalSeconds; i += timeStepInSeconds) {
-        const time = Cesium.JulianDate.addSeconds(
-          currentTime,
-          i,
-          new Cesium.JulianDate()
-        );
-        const angle = (i / totalSeconds) * Cesium.Math.TWO_PI;
-        const x = majorAxis * 1000 * Math.cos(angle);
-        const y =
-          majorAxis * 1000 * Math.sin(angle) * Math.sqrt(1 - eccentricity ** 2);
-        const z = 0;
-        const rotation = Cesium.Matrix3.fromRotationZ(
-          Cesium.Math.toRadians(inclination)
-        );
-        const positionVector = new Cesium.Cartesian3(x, y, z);
-        Cesium.Matrix3.multiplyByVector(
-          rotation,
-          positionVector,
-          positionVector
-        );
-        // if (
-        //   isNaN(positionVector.x) ||
-        //   isNaN(positionVector.y) ||
-        //   isNaN(positionVector.z)
-        // ) {
-        //   console.log("校验");
-        //   continue;
-        // }
-        position.addSample(time, positionVector);
-      }
-      return { position };
-    };
+  const position = new Cesium.SampledPositionProperty();
+  const currentTime = Cesium.JulianDate.now();
+  const timeStepInSeconds = 600;
+  const totalSeconds = 86400;
+  for (let i = 0; i <= totalSeconds; i += timeStepInSeconds) {
+    const time = Cesium.JulianDate.addSeconds(
+      currentTime,
+      i,
+      new Cesium.JulianDate()
+    );
+    const angle = (i / totalSeconds) * Cesium.Math.TWO_PI;
+    const x = majorAxis * 1000 * Math.cos(angle);
+    const y =
+      majorAxis * 1000 * Math.sin(angle) * Math.sqrt(1 - eccentricity ** 2);
+    const z = 0;
+    const rotation = Cesium.Matrix3.fromRotationZ(
+      Cesium.Math.toRadians(inclination)
+    );
+    const positionVector = new Cesium.Cartesian3(x, y, z);
+    Cesium.Matrix3.multiplyByVector(rotation, positionVector, positionVector);
+    // if (
+    //   isNaN(positionVector.x) ||
+    //   isNaN(positionVector.y) ||
+    //   isNaN(positionVector.z)
+    // ) {
+    //   continue;
+    // }
+    position.addSample(time, positionVector);
+  }
+  return { position };
+};
+
+const getSate = (param, orbit) => {
+
+  return viewer.entities.add({
+    name: param.name,
+    label: {
+      text: param.name,
+      show: true,
+      fillColor: Cesium.Color.fromCssColorString(param.color), //字体颜色
+      // backgroundColor:Cesium.Color.AQUA,    //背景颜色
+      // showBackground:true,                //是否显示背景颜色
+      // style: Cesium.LabelStyle.FILL,        //label样式
+      // outlineWidth : 2,
+      // verticalOrigin : Cesium.VerticalOrigin.CENTER,//垂直位置
+      // horizontalOrigin :Cesium.HorizontalOrigin.CENTER,//水平位置
+      pixelOffset: new Cesium.Cartesian2(0, -20), //偏移
+      scale:0.5
+    },
+    position: orbit.position,
+    point: {
+      pixelSize: 10,
+      color: Cesium.Color.fromCssColorString(param.color),
+    },
+    path: {
+      resoltution: 60,
+      width: 1,
+      //这样设置轨道是随时间画出来的，不是一开始就完整展示的
+      // leadTime: 0,
+      // trailTime: 86400,
+      //始终完整展示轨道
+      leadTime: 86400, //一开始gpt推荐leadTime和trailTime都用Number.POSITIVE_INFINITY，但是leadtime会报错长度无效，因为生成轨道点过多，内存溢出了
+      trailTime: 86400, //所以改成一个较大的时间（实际项目改成时间轴时间应该就可以）
+      material: Cesium.Color.fromCssColorString(param.color),
+    },
+  });
+};
+
 const visSate = () => {
+
   viewer.entities.removeAll();
   for (let index = 0; index < sateArr.value.length; index++) {
     const param = sateArr.value[index];
     const { name, majorAxis, eccentricity, inclination, color } = param;
-     const orbit = createOrbit(majorAxis, eccentricity, inclination);
-      sate = viewer.entities.add({
-      name,
-      position: orbit.position,
-      point: {
-        pixelSize: 10,
-        color: Cesium.Color.fromCssColorString(color),
-      },
-      path: {
-        resoltution: 60,
-        width: 1,
-        //这样设置轨道是随时间画出来的，不是一开始就完整展示的
-        // leadTime: 0,
-        // trailTime: 86400,
-        //始终完整展示轨道
-        leadTime: 86400, //一开始gpt推荐leadTime和trailTime都用Number.POSITIVE_INFINITY，但是leadtime会报错长度无效，因为生成轨道点过多，内存溢出了
-        trailTime: 86400, //所以改成一个较大的时间（实际项目改成时间轴时间应该就可以）
-        material: Cesium.Color.fromCssColorString(color),
-      },
-    });
+    const orbit = createOrbit(majorAxis, eccentricity, inclination);
+    getSate(param, orbit);
   }
 };
-const shotSate=(index)=>{
+const shotSate = (index) => {
   const param = sateArr.value[index];
-    const { name, majorAxis, eccentricity, inclination, color } = param;
- const orbit =  createOrbit(majorAxis, eccentricity, inclination);
-      sate = viewer.entities.add({
-      name,
-      label:{
-        text:'12',
-        show:true,
-        fillColor:Cesium.Color.RED,        //字体颜色
-        backgroundColor:Cesium.Color.AQUA,    //背景颜色
-        showBackground:true,                //是否显示背景颜色
-        style: Cesium.LabelStyle.FILL,        //label样式
-        outlineWidth : 2,                    
-        verticalOrigin : Cesium.VerticalOrigin.CENTER,//垂直位置
-        horizontalOrigin :Cesium.HorizontalOrigin.LEFT,//水平位置
-        pixelOffset:new Cesium.Cartesian2(10,0)            //偏移
-      },
-      position: orbit.position,
-      point: {
-        pixelSize: 10,
-        color: Cesium.Color.fromCssColorString(color),
-      },
-      path: {
-        resoltution: 60,
-        width: 1,
-        //这样设置轨道是随时间画出来的，不是一开始就完整展示的
-        // leadTime: 0,
-        // trailTime: 86400,
-        //始终完整展示轨道
-        leadTime: 86400, //一开始gpt推荐leadTime和trailTime都用Number.POSITIVE_INFINITY，但是leadtime会报错长度无效，因为生成轨道点过多，内存溢出了
-        trailTime: 86400, //所以改成一个较大的时间（实际项目改成时间轴时间应该就可以）
-        material:Cesium.Color.fromCssColorString(color),
-      },
-    });
-    viewer.trackedEntity=sate
-    viewer.clock.shouldAnimate=true
-    viewer.clock.multiplier=200
-}
+  const { name, majorAxis, eccentricity, inclination, color } = param;
+  const orbit = createOrbit(majorAxis, eccentricity, inclination);
+  const sate = getSate(param, orbit);
 
-const deleteSate=()=>{
-  visSate()
-}
+  viewer.trackedEntity = sate;
+  viewer.clock.shouldAnimate = true;
+  viewer.clock.multiplier = 200;
+};
+
+const deleteSate = () => {
+  visSate();
+};
 
 const getSatePara = (val) => {
   if (val === 1 || sateArr.value) {

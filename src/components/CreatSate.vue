@@ -21,22 +21,13 @@
       <label for="color"> 颜色</label>
       <input v-model="formState.color"  type="color"/>
     </div>
-    <!-- <a-form-item label="半轴长" name="majorAxis">
-        <a-input v-model:value="formState.name"></a-input
-      ></a-form-item>
-      <a-form-item label="偏心率" name="eccentricity">
-        <a-input v-model:value="formState.name"></a-input
-      ></a-form-item>
-      <a-form-item label="倾角" name="degress">
-        <a-input v-model:value="formState.name"></a-input
-      ></a-form-item> -->
     <button @click="submit(1)">确认</button>
     <button @click="submit(0)">取消</button>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, watch } from "vue";
+import { onMounted, reactive,} from "vue";
 import { useStore } from "vuex";
 
 // 记住defineProps和defineEmits都不需要导入了，可以直接写
@@ -97,7 +88,6 @@ const submit = (val) => {
     localStorage.setItem("sateArr", JSON.stringify(state.sateArr));
   }
   emit("setSatePara", val);
-  console.log("submit-state.sateArr", state.sateArr);
 };
 </script>
 
