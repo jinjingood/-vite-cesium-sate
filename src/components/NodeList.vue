@@ -8,6 +8,7 @@
       {{ i.name }}
       <div class="nodeitem-meau flex-container">
         <div @click="shotSate(index)">shot</div>
+        <div @click="trackSate(index)">track</div>
         <div @click="editSate(index)">edit</div>
         <div @click="deleteSate(index)">X</div>
       </div>
@@ -21,7 +22,7 @@ import { useStore } from "vuex";
 
 const store = useStore();
 let state = reactive({ sateArr: store.state.sateArr });
-const emit = defineEmits(["deleteSate", "edit",'shotSate']);
+const emit = defineEmits(["deleteSate", "edit",'shotSate','trackSate']);
 
 watch(()=>store.state.sateArr,(val)=>{
   state.sateArr=val
@@ -40,6 +41,10 @@ const editSate = (index) => {
 const shotSate=(index)=>{
   emit('shotSate',index)
 }
+
+const trackSate=(index)=>{
+  emit('trackSate',index)
+}
 </script>
 
 <style lang="less">
@@ -48,7 +53,7 @@ const shotSate=(index)=>{
   top: 80px;
   left: 20px;
   height: 200px;
-  min-width: 200px;
+  min-width: 250px;
   border-radius: 4px;
   padding: 8px 16px;
   background: white;
@@ -58,8 +63,9 @@ const shotSate=(index)=>{
   .nodeitem {
     margin: 8px 0;
     .nodeitem-meau {
-      width: 110px;
+      width: 160px;
       > div {
+        padding: 0 4px;
         text-align: center;
         border-radius: 4px;
       }
@@ -70,9 +76,8 @@ const shotSate=(index)=>{
         }
       }
       > div:last-child {
-        margin-left: 8px;
+        padding: 0;
         width: 24px;
-
         &:hover {
           background: red;
           color: white;
